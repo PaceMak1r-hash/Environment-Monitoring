@@ -18,16 +18,21 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "i2c.h"
+#include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "delay.h"
+#include "oled.h"
+#include "DHT11.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+unsigned char tempH,tempL,humiH,humiL;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -84,8 +89,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USART1_UART_Init();
+  MX_I2C2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-
+	delay_init(72);
+	OLED_Init();
+	OLED_Clear();
+	HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -95,6 +106,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		
+
+		
   }
   /* USER CODE END 3 */
 }
@@ -139,6 +153,18 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//1s
+ {
+		if(htim->Instance==TIM3)
+		{
+			DHT11_Read_Data(&tempH,&tempL,&humiH,&humiL);
+			OLED_ShowNum(0,0,tempH,2,16);
+			OLED_ShowNum(50,0,tempL,2,16);
+			OLED_ShowNum(0,50,humiH,2,16);
+			OLED_ShowNum(50,50,humiL,2,16);
+			OLED_Refresh();
+		}
+ }
 
 /* USER CODE END 4 */
 
